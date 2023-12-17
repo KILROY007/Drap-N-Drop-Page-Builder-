@@ -5,12 +5,13 @@ import { SideBar } from "./components/sideBar";
 import { PositionalBlocks } from "./shared/common.interface";
 import { EditModal } from "./components/editModal";
 import { ExportToJSON } from "./components/exportToJSON";
+import { ImportFromJson } from "./components/importFromJson";
+import { useLocalStorageState } from "./hooks/useLocalStorage.hook";
 
 function App() {
-  const [blockToBeRendered, setBlockToBeRendered] = useState<
+  const [blockToBeRendered, setBlockToBeRendered] = useLocalStorageState<
     PositionalBlocks[]
-  >([]);
-
+  >("blockToBeRendered", []);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalData, setModalData] = useState<PositionalBlocks>({});
 
@@ -81,45 +82,55 @@ function App() {
     setBlockToBeRendered(updatedArray);
   };
 
+  const handleJsonImport = (data: PositionalBlocks[]) => {
+    setBlockToBeRendered(data);
+  };
+
+  const readFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const jsonData = JSON.parse(event.target?.result as string);
+        handleJsonImport(jsonData);
+      } catch (error) {
+        console.error("Error parsing JSON file:", error);
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
   return (
     <>
       <div className="flex flex-col md:flex-row">
-        <div className="h-screen lg:w-4/5 bg-gray-200 p-4 flex flex-col gap-2 w-screen">
-          {blockToBeRendered?.map((block) => {
-            return (
-              <CanvasBlock
-                block={block}
-                key={block.id}
-                handleDragEnd={(data) => handleDragEnd(data.e, data.block)}
-                handleDoubleClick={(data) => {
-                  setModalData(data);
-                  setShowModal(true);
+        <div className="h-screen lg:w-full md:w-4/5 bg-gray-200 p-4 flex flex-col gap-2 w-screen">
+          {blockToBeRendered?.map((block) => (
+            <CanvasBlock
+              block={block}
+              key={block.id}
+              handleDragEnd={(data) => handleDragEnd(data.e, data.block)}
+              handleDoubleClick={(data) => {
+                setModalData(data);
+                setShowModal(true);
+              }}
+              handleKeyDown={(data) => handleDelete(data)}
+            />
+          ))}
+          <div className="flex justify-end gap-4">
+            <div>
+              <ImportFromJson
+                setFile={(data) => {
+                  readFile(data);
                 }}
-                handleKeyDown={(data) => handleDelete(data)}
               />
-            );
-          })}
-          <div className="flex justify-end">
+            </div>
             <ExportToJSON dataArray={blockToBeRendered} />
           </div>
         </div>
-        <div className="lg:w-1/5 h-screen bg-black p-4 mt-4 md:mt-0">
+        <div className="lg:1/5 md:w-1/5 h-screen bg-black p-4 mt-4 md:mt-0">
           <SideBar
             blocks={elements}
             title="BLOCKS"
-            // handleClick={(data) => {
-            //   const newBlock = {
-            //     id: Date.now() + Math.random(),
-            //     label: data.label,
-            //     icon: data.icon,
-            //     fontSize: data.fontSize,
-            //     fontWeight: data.fontWeight,
-            //     x: 0,
-            //     y: 0,
-            //   };
-            //   setBlockToBeRendered((prevValue) => [...prevValue, newBlock]);
-            //   setShowModal(true);
-            // }}
             handleDragEnd={(e, data) => {
               const newBlock = {
                 id: Date.now() + Math.random(),
