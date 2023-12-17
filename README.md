@@ -1,4 +1,4 @@
-# Vite + ReactJS Project
+# Mini Web Page Builder
 
 This project is built with Vite and ReactJS.
 
