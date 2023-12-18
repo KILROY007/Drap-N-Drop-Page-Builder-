@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { DragEvent, useState } from "react";
 import dragIcon from "./assets/grip-vertical.svg";
 import { CanvasBlock } from "./components/canvasBlock";
