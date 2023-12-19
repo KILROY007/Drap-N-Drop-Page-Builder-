@@ -14,6 +14,9 @@ function App() {
   const [blockToBeRendered, setBlockToBeRendered] = useLocalStorageState<
     PositionalBlocks[]
   >("blockToBeRendered", []);
+
+  const [poppedElements, setPoppedElements] = useState<PositionalBlocks[]>([]);
+
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalData, setModalData] = useState<PositionalBlocks>({});
 
@@ -46,6 +49,27 @@ function App() {
       y: 0,
     },
   ];
+
+  const handleUndo = () => {
+    const poppedElement = blockToBeRendered.pop();
+    setPoppedElements((prevValue) => [...prevValue, poppedElement]);
+    setBlockToBeRendered([...blockToBeRendered]);
+  };
+
+  // const handleRedo = () => {
+  //   const lastPopped = poppedElements.slice(-1);
+  //   const updatedPoppedElements = poppedElements.filter((element) => {
+  //     element.id !== lastPopped.id;
+  //   });
+  //   setPoppedElements(updatedPoppedElements);
+  //   setBlockToBeRendered((prevValue) => [...prevValue, ...lastPopped]);
+  // };
+
+  const handleRedoV2 = () => {
+    const elementToBeAdded = poppedElements.pop();
+    setBlockToBeRendered((prevValue) => [...prevValue, elementToBeAdded]);
+    setPoppedElements([...poppedElements]);
+  };
 
   const handleDragEnd = (
     e: DragEvent<HTMLDivElement>,
@@ -119,6 +143,8 @@ function App() {
             />
           ))}
           <div className="flex justify-end gap-4">
+            <button onClick={() => handleRedoV2()}>Redo</button>
+            <button onClick={() => handleUndo()}>undo</button>
             <div>
               <ImportFromJson
                 setFile={(data) => {
@@ -135,7 +161,7 @@ function App() {
             title="BLOCKS"
             handleDragEnd={(e, data) => {
               const newBlock = {
-                id: Date.now() + Math.random(),
+                id: Date.now(),
                 label: data.label,
                 icon: data.icon,
                 fontSize: data.fontSize,
